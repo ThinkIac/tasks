@@ -1,0 +1,63 @@
+// Board Kanban — múltiplos boards, colunas personalizadas.
+// Campos createdAt, updatedAt e deletedAt são injetados automaticamente pelo runtime.
+// Migração de dados legados (status -> columnId) acontece em index.js (onBoot),
+// aproveitando que o runtime só adiciona colunas via ALTER TABLE (nunca remove).
+
+model Board {
+  localAccessBoard Boolean @default(false)
+  id    String @id @default(uuid())
+  name  String
+  color String @default("#2dd4bf")
+  order Int    @default(0)
+}
+
+model Column {
+  id      String  @id @default(uuid())
+  boardId String
+  name    String
+  color   String  @default("#94a3b8")
+  order   Int     @default(0)
+  closed  Boolean @default(false)
+  // Tipo/estado semântico da coluna: "open" (normal), "done" (finalizado) ou
+  // "cancelled" (cancelado). Colunas done/cancelled são terminais — entrar nelas
+  // dispara tasks:completed / tasks:cancelled — e nascem fechadas (closed=true).
+  kind    String  @default("open")
+  // Automação: "none" | "refine" | "implement". Lido pelo package `automation`
+  // — cards nesta coluna são refinados (loop periódico) ou implementados
+  // (ao serem movidos p/ cá). Após processar, o card avança p/ a próxima coluna.
+  automation String @default("none")
+}
+
+model Task {
+  ownerId String?
+  sharedGroupIds String?
+  id          String  @id @default(uuid())
+  boardId     String
+  columnId    String
+  title       String
+  description String?
+  priority    String  @default("medium")
+  order       Int     @default(0)
+  dueDate     String?
+  tags        String?
+  resolution  String?
+  // Marca quando o evento tasks:due já foi emitido para este vencimento — evita
+  // reemitir a cada varredura. Resetado (para null) sempre que dueDate muda.
+  dueNotifiedAt String?
+  // Legado: a tabela física original tinha "status" TEXT NOT NULL sem DEFAULT
+  // no SQL (o runtime só adiciona DEFAULT em colunas criadas via ALTER TABLE,
+  // não na criação original). Remover o campo do schema faria todo INSERT
+  // novo violar essa constraint. Mantido só por isso — não é lido nem exposto
+  // pela API/UI; a coluna de verdade é columnId.
+  status      String  @default("kanban")
+}
+
+// Comentários de uma task — thread simples, sem edição (só criar/apagar).
+model Comment {
+  id      String @id @default(uuid())
+  taskId  String
+  author  String @default("user") // "user" | "agent" | nome livre
+  content String
+
+  @@index([taskId])
+}

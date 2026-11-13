@@ -1,0 +1,52 @@
+{
+  "name": "Overdue Task Notification",
+  "description": "Sends an alert when an open task reaches its due date.",
+  "trigger": {
+    "type": "event",
+    "event": "tasks:due"
+  },
+  "nodes": [
+    {
+      "id": "channel",
+      "type": "set",
+      "name": "ntfy Channel",
+      "position": { "x": 80, "y": 80 },
+      "config": {
+        "key": "channel",
+        "value": "",
+        "description": "Leave blank to use the default ntfy channel."
+      }
+    },
+    {
+      "id": "trigger",
+      "type": "trigger",
+      "name": "Task Became Overdue",
+      "position": { "x": 400, "y": 220 },
+      "config": {}
+    },
+    {
+      "id": "notify",
+      "type": "tool",
+      "name": "Send Notification",
+      "position": { "x": 720, "y": 220 },
+      "config": {
+        "package": "ntfy",
+        "name": "sendNtfyNotification",
+        "args": {
+          "channel": "{{vars.channel}}",
+          "title": "Task Overdue",
+          "message": "The task **{{trigger.title}}** became overdue on {{trigger.dueDate}}.",
+          "priority": 4,
+          "tags": "warning"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "trigger",
+      "fromPort": "out",
+      "to": "notify"
+    }
+  ]
+}

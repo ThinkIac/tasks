@@ -1,0 +1,37 @@
+{
+  "name": "tasks",
+  "version": "1.0.0",
+  "description": "Gerenciamento de tarefas com dashboard Kanban, tools nativas e eventos",
+  "main": "index.js",
+  "type": "module",
+  "dependencies": {
+    "logos": "*"
+  },
+  "manifest": {
+    "name": "Tasks",
+    "iconPreset": { "pack": "lucide", "name": "CalendarCheck2" },
+    "color": "#2dd4bf",
+    "menu": {
+      "id": "task-creator",
+      "label": "Nova Task",
+      "target": "left",
+      "hidden": true,
+      "view": "Widget"
+    },
+    "widget": {
+      "lang": "tasks",
+      "title": "Tasks",
+      "view": "MessageWidget",
+      "aliases": ["task"],
+      "partialMin": 0,
+      "launcher": {
+        "version": 1,
+        "view": "LauncherWidget",
+        "label": "Resumo das tarefas",
+        "size": "medium",
+        "transparent": true,
+        "action": { "type": "open", "target": "/view/tasks/Index" }
+      }
+    }
+  }
+}
